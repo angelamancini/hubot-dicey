@@ -1,5 +1,5 @@
 module.exports = (robot) ->
-  robot.hear /roll (\d) (.*) diff(\d)/i, (res) ->
+  robot.hear /roll (\d*) (.*) diff(\d)/i, (res) ->
     numDie = res.match[1]
     character = res.match[2]
     name_array = character.split('-')
