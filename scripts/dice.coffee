@@ -1,3 +1,6 @@
+# Commands:
+#   roll x description text diffy - Dicey rolls x number of dice at difficulty y
+
 module.exports = (robot) ->
   robot.hear /roll (\d*) (.*) diff(\d*)/i, (res) ->
     numDie = res.match[1]
