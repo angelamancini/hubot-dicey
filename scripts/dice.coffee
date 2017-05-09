@@ -11,13 +11,11 @@
 #   Rolls dice according to wod classic rules
 #
 # Commands:
-#   roll x description text diffy - Dicey rolls x number of dice at difficulty y
-#   roll x description text diff y - Dicey rolls x number of dice at difficulty y
-#   roll x description text - Dicey rolls x number of dice at default difficulty
+#   roll x dy description text diffz - Dicey rolls x number of dy dice at difficulty z, if dy is left off, it defaults to a d10. If difficulty is left off, it defaults to diff6. If diff0, no succeses are calculated.
 #   !flip - Dicey flips a Coin
 #   !odds - Dicey does an odds/evens, returns success when number is odd
 #   !evens - Dicey does an odds/evens, returns success when number is even
-#   !roll x dy - Dicey rolls x number of a y-sided dice
+#   !percent - Dicey returns a random percent
 # Notes:
 #
 # Author:
@@ -29,12 +27,14 @@ DICE_SIDES = 10
 
 STATUS_COLORS = {
   success: "#3ccc76",
-  failed: "#df8e2e",
+  failed: "#de8822",
   botched: "#d00909",
   init: "#6be7fc",
   heads: "#6b83fc",
   tails: "#ffc700",
-  generic: "#f073d4"
+  generic: "#f073d4",
+  debug: "#7038cc",
+  percent: "#ffc453"
 }
 
 roll_one = (sides) ->
@@ -48,16 +48,16 @@ roll_multiple = (num_die, sides) ->
     i++
   return results
 
-roll_with_diff = (num_die, sides, difficulty) ->
-  results = roll_multiple(num_die, sides)
+calc_success = (results, difficulty) ->
   ones = results.filter (x) -> x == 1
-  one_count = ones.length
-  successes = results.filter (x) -> x >= difficulty
-  success_count = successes.length
-  totalSux = success_count - one_count
-  return { results: results, successes: success_count, botches: one_count, total_sux: totalSux }
+  botches = ones.length
+  above_diff = results.filter (x) -> x >= difficulty
+  successes = above_diff.length
+  total_sux = successes - botches
+  return { total: total_sux, botches: botches, successes: successes }
 
-format_message = (roll,text,color) ->
+
+format_message = (text,color) ->
   att = [
     {
       fallback: text,
@@ -70,30 +70,39 @@ format_message = (roll,text,color) ->
 
 module.exports = (robot) ->
   # Normal d10 roll with difficulty
-  robot.hear /NOT ^!roll.*$|^roll(\d{1,2}|\s\d{1,2})\s(.*)(?:\sdiff(\d{1,2}|\s\d{1,2}))?/i, (res) ->
+  robot.hear /^roll(?:\s)?([1-9]+)(?:\s)?(d\d{1,3})?(?:\s)?(.+?(?=diff|$))(diff(?:\s)?(\d{1,2}))?/i, (res) ->
     console.log "Triggered by received message: #{res.message}"
-    num_die = res.match[1].replace /^\s+$/g, ""
-    action_text = res.match[2]
     user = res.message.user.name
-    difficulty = res.match[3]
-    if difficulty == undefined
-      console.log "Falling back to default diff: #{DEFAULT_DIFF}"
-      difficulty = DEFAULT_DIFF
-
-    console.log "Num Dice: [#{num_die}] #{typeof +num_die}. Action Text: #{action_text}. Difficulty: [#{difficulty}]"
-    roll = roll_with_diff(+num_die, DICE_SIDES, +difficulty)
-    if roll['total_sux'] == 0
-      color = STATUS_COLORS['failed']
-      result_text = "*Failed*"
-    else if roll['total_sux'] < 0
-      color = STATUS_COLORS['botched']
-      result_text = "*Botched x#{roll['botches']}*"
+    num_die = +res.match[1]
+    if res.match[2] == undefined
+      dice_sides = DICE_SIDES
     else
-      color = STATUS_COLORS['success']
-      result_text = "*#{roll['total_sux']} Successes*"
+      dice_sides = +(res.match[2].substring(1))
+    description = res.match[3]
+    if res.match[5] == undefined
+      difficulty = DEFAULT_DIFF
+    else
+      difficulty = +res.match[5]
 
-    text = "@#{user} #{action_text} rolled #{num_die} dice at diff #{difficulty} for #{result_text} [#{roll['results']}]."
-    attachment = format_message(roll,text,color)
+    roll = roll_multiple(num_die, dice_sides)
+    console.log "==========\nNum Dice: #{num_die}\nDice Type: #{dice_sides}\nDescription: #{description}\nDifficulty: #{difficulty}\n=========="
+    if difficulty == 0
+      color = STATUS_COLORS['generic']
+      text = "@#{user} _#{description}_ rolled #{num_die} dice for [#{roll}]."
+    else
+      calc = calc_success(roll, difficulty)
+      if calc['total'] == 0
+        color = STATUS_COLORS['failed']
+        result_text = "*Failed* "
+      else if calc['total']  < 0
+        color = STATUS_COLORS['botched']
+        result_text = "*Botched x#{calc['botches']}* "
+      else
+        color = STATUS_COLORS['success']
+        result_text = "*#{calc['successes']} Successes* "
+      text = "@#{user} _#{description}_ rolled #{num_die} dice at diff #{difficulty} for #{result_text}[#{roll}]."
+
+    attachment = format_message(text,color)
     res.send(username: res.robot.name, attachments: attachment)
 
   # Initiative Roll
@@ -110,7 +119,7 @@ module.exports = (robot) ->
     roll = roll_one(DICE_SIDES)
     init = roll + base
     text = "@#{user} #{prettyCharacter} init: #{init} (base #{base})"
-    attachment = format_message(roll,text,STATUS_COLORS['init'])
+    attachment = format_message(text,STATUS_COLORS['init'])
     res.send(username: res.robot.name, attachments: attachment)
 
   # Coin Flip
@@ -125,7 +134,7 @@ module.exports = (robot) ->
       text = "Tails"
       color = STATUS_COLORS['tails']
     text = "@#{user} #{text}!"
-    attachment = format_message(roll,text,color)
+    attachment = format_message(text,color)
     res.send(username: res.robot.name, attachments: attachment)
 
   robot.hear /!odds/i, (res) ->
@@ -139,7 +148,7 @@ module.exports = (robot) ->
       text = "called odds. Result: Odd! [#{roll}]"
       color = STATUS_COLORS['success']
     text = "@#{user} #{text}"
-    attachment = format_message(roll,text,color)
+    attachment = format_message(text,color)
     res.send(username: res.robot.name, attachments: attachment)
 
   robot.hear /!evens/i, (res) ->
@@ -153,15 +162,13 @@ module.exports = (robot) ->
       text = "called odds. Result: Odd! [#{roll}]"
       color = STATUS_COLORS['botched']
     text = "@#{user} #{text}!"
-    attachment = format_message(roll,text,color)
+    attachment = format_message(text,color)
     res.send(username: res.robot.name, attachments: attachment)
 
-  robot.hear /^!roll (\d*)(?:\s)(?:d)?(?:\s)?(\d*)/i, (res) ->
+  robot.hear /!percent/i, (res) ->
     console.log "Triggered by received message: #{res.message}"
     user = res.message.user.name
-    num_dice = res.match[1]
-    sides = res.match[2]
-    roll = roll_multiple(num_dice, +sides)
-    text = "@#{user} rolled #{num_dice} d#{sides}. Result: [#{roll}]"
-    attachment = format_message(roll,text,STATUS_COLORS['generic'])
+    roll = roll_multiple(1, 100)
+    text = "@#{user} #{roll}%"
+    attachment = format_message(text,STATUS_COLORS['percent'])
     res.send(username: res.robot.name, attachments: attachment)
