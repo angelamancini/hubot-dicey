@@ -142,7 +142,7 @@ module.exports = (robot) ->
     user = res.message.user.name
     roll = roll_one(DICE_SIDES)
     if roll % 2 == 0
-      text = "called evens. Result: Even! [#{roll}]"
+      text = "called odds. Result: Even! [#{roll}]"
       color = STATUS_COLORS['botched']
     else
       text = "called odds. Result: Odd! [#{roll}]"
@@ -159,7 +159,7 @@ module.exports = (robot) ->
       text = "called evens. Result: Even! [#{roll}]"
       color = STATUS_COLORS['success']
     else
-      text = "called odds. Result: Odd! [#{roll}]"
+      text = "called evens. Result: Odd! [#{roll}]"
       color = STATUS_COLORS['botched']
     text = "@#{user} #{text}!"
     attachment = format_message(text,color)
