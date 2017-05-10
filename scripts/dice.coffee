@@ -99,7 +99,7 @@ module.exports = (robot) ->
         result_text = "*Botched x#{calc['botches']}* "
       else
         color = STATUS_COLORS['success']
-        result_text = "*#{calc['total_sux']} Successes* "
+        result_text = "*#{calc['total']} Successes* "
       text = "@#{user} _#{description}_ rolled #{num_die} d#{dice_sides} at diff #{difficulty} for #{result_text}[#{roll}]."
 
     attachment = format_message(text,color)
