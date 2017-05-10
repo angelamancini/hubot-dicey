@@ -70,7 +70,7 @@ format_message = (text,color) ->
 
 module.exports = (robot) ->
   # Normal d10 roll with difficulty
-  robot.hear /^roll(?:\s)?([1-9]+)(?:\s)?(d\d{1,3})?(?:\s)?(.+?(?=diff|$))(diff(?:\s)?(\d{1,2}))?/i, (res) ->
+  robot.hear /^roll(?:\s)?(\d{1,2})(?:\s)?(d\d{1,3})?(?:\s)?(.+?(?=diff|$))(diff(?:\s)?(\d{1,2}))?/i, (res) ->
     console.log "Triggered by received message: #{res.message}"
     user = res.message.user.name
     num_die = +res.match[1]
