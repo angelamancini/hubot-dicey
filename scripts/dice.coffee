@@ -54,7 +54,7 @@ calc_success = (results, difficulty) ->
   above_diff = results.filter (x) -> x >= difficulty
   successes = above_diff.length
   total_sux = successes - botches
-  return { total: total_sux, botches: botches, successes: successes }
+  return { total: total_sux, botches: botches }
 
 
 format_message = (text,color) ->
@@ -88,7 +88,7 @@ module.exports = (robot) ->
     console.log "==========\nNum Dice: #{num_die}\nDice Type: #{dice_sides}\nDescription: #{description}\nDifficulty: #{difficulty}\n=========="
     if difficulty == 0
       color = STATUS_COLORS['generic']
-      text = "@#{user} _#{description}_ rolled #{num_die} dice for [#{roll}]."
+      text = "@#{user} _#{description}_ rolled #{num_die} d#{dice_sides} for [#{roll}]."
     else
       calc = calc_success(roll, difficulty)
       if calc['total'] == 0
@@ -99,8 +99,8 @@ module.exports = (robot) ->
         result_text = "*Botched x#{calc['botches']}* "
       else
         color = STATUS_COLORS['success']
-        result_text = "*#{calc['successes']} Successes* "
-      text = "@#{user} _#{description}_ rolled #{num_die} dice at diff #{difficulty} for #{result_text}[#{roll}]."
+        result_text = "*#{calc['total_sux']} Successes* "
+      text = "@#{user} _#{description}_ rolled #{num_die} d#{dice_sides} at diff #{difficulty} for #{result_text}[#{roll}]."
 
     attachment = format_message(text,color)
     res.send(username: res.robot.name, attachments: attachment)
