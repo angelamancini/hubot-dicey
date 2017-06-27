@@ -1,12 +1,3 @@
-# @Author: Angela Mancini <angelamancini>
-# @Date:   2016-05-25T17:32:09-04:00
-# @Email:  angeladmancini@gmail.com
-# @Project: Combat Monkey
-# @Filename: dice.coffee
-# @Last modified by:   angelamancini
-# @Last modified time: 2017-05-07T23:12:59-04:00
-# @License: GPL-3.0
-
 # Description:
 #   Rolls dice according to wod classic rules
 #
@@ -94,7 +85,7 @@ module.exports = (robot) ->
       if calc['total'] == 0
         color = STATUS_COLORS['failed']
         result_text = "*Failed* "
-      else if calc['total']  < 0
+      else if calc['total'] < 0
         color = STATUS_COLORS['botched']
         result_text = "*Botched x#{calc['botches']}* "
       else
