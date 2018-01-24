@@ -43,7 +43,7 @@ roll_multiple = (num_die, sides) ->
 
 calc_success = (results, difficulty) ->
   ones = results.filter (x) -> x == 1
-  console.log "ONES: #{ones}"
+  console.log "==========\nONES: #{ones}"
   botches = ones.length
   console.log "Botches: #{botches}"
   above_diff = results.filter (x) -> x >= difficulty
@@ -51,7 +51,7 @@ calc_success = (results, difficulty) ->
   successes = above_diff.length
   console.log "Successes: #{successes}"
   total_sux = successes - botches
-  console.log "Total Successes: #{total_sux}"
+  console.log "Total Successes: #{total_sux}\n=========="
   return { total: total_sux, botches: botches }
 
 
@@ -95,6 +95,7 @@ module.exports = (robot) ->
       else if calc['total'] < 0
         color = STATUS_COLORS['botched']
         result_text = "*Botched x#{Math.abs(calc['total'])}* "
+          console.log "------\nBotches: #{calc['botches']}\nTotal: #{calc['total']}\n------"
       else
         color = STATUS_COLORS['success']
         result_text = "*#{calc['total']} Successes* "
