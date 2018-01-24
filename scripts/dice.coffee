@@ -95,7 +95,7 @@ module.exports = (robot) ->
       else if calc['total'] < 0
         color = STATUS_COLORS['botched']
         result_text = "*Botched x#{Math.abs(calc['total'])}* "
-          console.log "------\nBotches: #{calc['botches']}\nTotal: #{calc['total']}\n------"
+        console.log "------\nBotches: #{calc['botches']}\nTotal: #{calc['total']}\n------"
       else
         color = STATUS_COLORS['success']
         result_text = "*#{calc['total']} Successes* "
@@ -110,7 +110,7 @@ module.exports = (robot) ->
     character = res.match[1]
     name_array = character.split('-')
     name_array = name_array.map((str) ->
-      str.charAt(0).toUpperCase() + str.slice(1);
+      str.charAt(0).toUpperCase() + str.slice(1)
     )
     user = res.message.user.name
     prettyCharacter = name_array.join ' '
